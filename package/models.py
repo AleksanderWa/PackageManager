@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django_countries.fields import CountryField
 
 
 class TimestampModel(models.Model):
@@ -35,11 +36,22 @@ class Package(TimestampModel):
 
 
 class Order(TimestampModel):
+    class Status(models.IntegerChoices):
+        NEW = 1
+        READY_TO_SEND = 2
+        SENT = 3
+
     customer_name = models.CharField(verbose_name="customer name", max_length=30)
+    country = CountryField(null=False, blank=False)
+    status = models.IntegerField(default=Status.NEW, choices=Status.choices)
 
     class Meta:
         verbose_name = _("order")
         verbose_name_plural = _("orders")
+
+    @property
+    def total_packages(self):
+        return sum([order_item.packages_number for order_item in self.items.all()])
 
 
 class OrderItem(TimestampModel):
@@ -50,3 +62,11 @@ class OrderItem(TimestampModel):
     class Meta:
         verbose_name = _("order item")
         verbose_name_plural = _("order items")
+
+    @property
+    def packages_number(self):
+        return self.furniture.packages.count() * self.quantity
+
+    @property
+    def packages_weight(self):
+        return sum([package.weight for package in self.furniture.packages.all()])
