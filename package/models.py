@@ -12,7 +12,9 @@ class TimestampModel(models.Model):
 
 class Furniture(TimestampModel):
     name = models.CharField(verbose_name="name", max_length=40)
-    weight = models.DecimalField(verbose_name="weight", default=0, decimal_places=2, max_digits=5)
+    weight = models.DecimalField(
+        verbose_name="weight", help_text="weight in kilograms", default=0, decimal_places=2, max_digits=5
+    )
     price = models.DecimalField(verbose_name="price", default=0, decimal_places=2, max_digits=5)
 
     class Meta:
@@ -22,7 +24,9 @@ class Furniture(TimestampModel):
 
 class Package(TimestampModel):
     number = models.CharField(verbose_name="number", max_length=40)
-    weight = models.DecimalField(verbose_name="weight", default=0, decimal_places=2, max_digits=5)
+    weight = models.DecimalField(
+        verbose_name="weight", help_text="weight in kilograms", default=0, decimal_places=2, max_digits=5
+    )
     furniture = models.ForeignKey(Furniture, on_delete=models.CASCADE, related_name="packages")
 
     class Meta:
