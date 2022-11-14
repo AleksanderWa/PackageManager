@@ -10,25 +10,19 @@ class TimestampModel(models.Model):
         abstract = True
 
 
-class ProductModel(models.Model):
-    name = models.CharField(verbose_name="name", max_length=40, null=True)
+class Furniture(TimestampModel):
+    name = models.CharField(verbose_name="name", max_length=40)
     weight = models.DecimalField(verbose_name="weight", default=0, decimal_places=2, max_digits=5)
-
-    class Meta:
-        abstract = True
-
-
-class Furniture(TimestampModel, ProductModel):
-    # name = models.CharField(verbose_name="name", max_length=40, null=True)
-    # weight = models.DecimalField(verbose_name="weight", default=0, decimal_places=2, max_digits=5)
+    price = models.DecimalField(verbose_name="price", default=0, decimal_places=2, max_digits=5)
 
     class Meta:
         verbose_name = _("furniture")
         verbose_name_plural = _("furnitures")
 
 
-class Package(TimestampModel, ProductModel):
-    # weight = models.DecimalField(verbose_name="weight", default=0, decimal_places=2, max_digits=5)
+class Package(TimestampModel):
+    number = models.CharField(verbose_name="number", max_length=40)
+    weight = models.DecimalField(verbose_name="weight", default=0, decimal_places=2, max_digits=5)
     furniture = models.ForeignKey(Furniture, on_delete=models.CASCADE, related_name="packages")
 
     class Meta:
@@ -37,7 +31,7 @@ class Package(TimestampModel, ProductModel):
 
 
 class Order(TimestampModel):
-    customer_name = models.CharField(verbose_name="customer name", max_length=30, null=True)
+    customer_name = models.CharField(verbose_name="customer name", max_length=30)
 
     class Meta:
         verbose_name = _("order")
