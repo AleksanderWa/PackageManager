@@ -21,7 +21,7 @@ class OrderItemFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = OrderItem
 
-    quantity = factory.LazyAttribute(lambda o: faker.pyint(min_value=50, max_value=10000, step=1.5))
+    # quantity = factory.LazyAttribute(lambda o: faker.pyint(min_value=50, max_value=10000, step=1.5))
 
 
 class PackageFactory(factory.django.DjangoModelFactory):

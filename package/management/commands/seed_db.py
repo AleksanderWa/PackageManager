@@ -54,7 +54,7 @@ class Command(
 
         furniture = FurnitureFactory.create(with_packages=True)
         # PackageFactory.create_batch(packages_number, furniture=furniture)
-
-        OrderItemFactory.create(quantity=cabinets_number, order=order, furniture=furniture)
+        for _ in range(0, cabinets_number):
+            OrderItemFactory.create(order=order, furniture=furniture)
 
         logger.info("{} seeded with data".format(order))

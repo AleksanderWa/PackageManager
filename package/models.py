@@ -49,24 +49,23 @@ class Order(TimestampModel):
         verbose_name = _("order")
         verbose_name_plural = _("orders")
 
-    @property
-    def total_packages(self):
-        return sum([order_item.packages_number for order_item in self.items.all()])
+    # @property
+    # def total_packages(self):
+    #     return sum([order_item.furniture.packages.count() for order_item in self.items.all()])
 
 
 class OrderItem(TimestampModel):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     furniture = models.ForeignKey(Furniture, on_delete=models.PROTECT)
-    quantity = models.IntegerField(verbose_name="quantity")
 
     class Meta:
         verbose_name = _("order item")
         verbose_name_plural = _("order items")
 
-    @property
-    def packages_number(self):
-        return self.furniture.packages.count() * self.quantity
-
-    @property
-    def packages_weight(self):
-        return sum([package.weight for package in self.furniture.packages.all()])
+    # @property
+    # def packages_number(self):
+    #     return self.furniture.packages.count()
+    #
+    # @property
+    # def packages_weight(self):
+    #     return sum([package.weight for package in self.furniture.packages.all()])
