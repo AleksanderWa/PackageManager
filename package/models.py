@@ -49,9 +49,9 @@ class Order(TimestampModel):
         verbose_name = _("order")
         verbose_name_plural = _("orders")
 
-    # @property
-    # def total_packages(self):
-    #     return sum([order_item.furniture.packages.count() for order_item in self.items.all()])
+    @property
+    def total_packages_weight(self):
+        return sum([order_item.packages_weight for order_item in self.items.all()])
 
 
 class OrderItem(TimestampModel):
@@ -66,6 +66,6 @@ class OrderItem(TimestampModel):
     # def packages_number(self):
     #     return self.furniture.packages.count()
     #
-    # @property
-    # def packages_weight(self):
-    #     return sum([package.weight for package in self.furniture.packages.all()])
+    @property
+    def packages_weight(self):
+        return sum([package.weight for package in self.furniture.packages.all()])

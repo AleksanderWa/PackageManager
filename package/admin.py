@@ -1,6 +1,5 @@
 from django.contrib import admin, messages
-from django.db.models import Subquery, Sum
-from django.db.models.functions import Coalesce
+from django.db.models import Count, DecimalField, IntegerField, OuterRef, Subquery, Sum
 
 from package.models import Order
 
@@ -30,15 +29,32 @@ class TotalPackagesFilter(admin.SimpleListFilter):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
-        furniture_weight = Order.objects.all().annotate(_furniture_weight=Sum("items__furniture__weight"))
-        # total_package = Order.objects.all().annotate(_total_packages=Count("items__furniture__packages"))
-        packages_weight = Order.objects.all().annotate(_furniture_weight=Sum("items__furniture__packages__weight"))
-        return Order.objects.all().annotate(
-            _furniture_weight=Coalesce(Subquery(furniture_weight), 0),
-            _total_packages=Coalesce(Subquery(packages_weight), 0),
+        furniture_weight = Order.objects.annotate(furniture_weight=Sum("items__furniture__weight")).filter(
+            pk=OuterRef("pk")
         )
+        total_package = Order.objects.annotate(total_packages=Count("items__furniture__packages")).filter(
+            pk=OuterRef("pk")
+        )
+        packages_weight = Order.objects.annotate(packages_weight=Sum("items__furniture__packages__weight")).filter(
+            pk=OuterRef("pk")
+        )
+        qs = Order.objects.annotate(
+            _furniture_weight=Subquery(furniture_weight.values("furniture_weight"), output_field=DecimalField()),
+            _total_packages=Subquery(total_package.values("total_packages"), output_field=IntegerField()),
+            _packages_weight=Subquery(packages_weight.values("packages_weight"), output_field=DecimalField()),
+        )
+        return qs
 
-    list_display = ("id", "created_at", "customer_name", "country", "status", "furniture_weight", "total_packages")
+    list_display = (
+        "id",
+        "created_at",
+        "customer_name",
+        "country",
+        "status",
+        "furniture_weight",
+        "total_packages",
+        "packages_weight",
+    )
     list_filter = ("status", TotalPackagesFilter)
     actions = ["count_weight"]
 

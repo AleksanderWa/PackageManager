@@ -52,8 +52,9 @@ class FurnitureFactory(factory.django.DjangoModelFactory):
             # Simple build, do nothing.
             return
 
-        packages_number = random.randint(4, 10)
-        packages = PackageFactory.create_batch(packages_number, furniture=self)
+        if extracted:
+            packages_number = random.randint(4, 10)
+            packages = PackageFactory.create_batch(packages_number, furniture=self)
 
-        furniture_weight = sum([package.weight for package in packages])
-        self.weight = furniture_weight
+            furniture_weight = sum([package.weight for package in packages])
+            self.weight = furniture_weight
