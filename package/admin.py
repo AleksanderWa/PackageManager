@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from package.forms import BulkSendForm
-from package.models import Order
+from package.models import Order, OrderItem
 
 
 class TotalPackagesFilter(admin.SimpleListFilter):
@@ -83,8 +83,55 @@ class OrderAdmin(admin.ModelAdmin):
         if request.method == "POST" and "apply" in request.POST:
             form = BulkSendForm(request.POST)
             if form.is_valid():
-                queryset.update(status=Order.Status.SENT, delivery_company=form.cleaned_data["delivery_company"])
+                queryset.update(
+                    status=Order.Status.READY_TO_SEND, delivery_company=form.cleaned_data["delivery_company"]
+                )
                 self.message_user(request, "Changed status on {} orders".format(queryset.count()))
                 return HttpResponseRedirect(request.get_full_path())
 
         return render(request, "admin/bulk_send.html", context={"form": BulkSendForm(), "orders": queryset})
+
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        furniture_weight = OrderItem.objects.annotate(furniture_weight=Sum("furniture__weight")).filter(
+            pk=OuterRef("pk")
+        )
+        total_package = OrderItem.objects.annotate(total_packages=Count("furniture__packages")).filter(
+            pk=OuterRef("pk")
+        )
+        packages_weight = OrderItem.objects.annotate(packages_weight=Sum("furniture__packages__weight")).filter(
+            pk=OuterRef("pk")
+        )
+        qs = OrderItem.objects.annotate(
+            _furniture_weight=Subquery(furniture_weight.values("furniture_weight"), output_field=DecimalField()),
+            _total_packages=Subquery(total_package.values("total_packages"), output_field=IntegerField()),
+            _packages_weight=Subquery(packages_weight.values("packages_weight"), output_field=DecimalField()),
+        ).order_by("order__country")
+        return qs
+
+    list_display = (
+        "id",
+        "created_at",
+        "order_country",
+        "furniture_weight",
+        "total_packages",
+        "packages_weight",
+    )
+
+    def packages_weight(self, obj):
+        return obj._packages_weight
+
+    def furniture_weight(self, obj):
+        return obj._furniture_weight
+
+    def total_packages(self, obj):
+        return obj._total_packages
+
+    def order_country(self, obj):
+        return obj.order.country.name
+
+    packages_weight.admin_order_field = "_packages_weight"
+    furniture_weight.admin_order_field = "_furniture_weight"
+    total_packages.admin_order_field = "_total_packages"
