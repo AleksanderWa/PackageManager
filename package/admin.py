@@ -14,14 +14,14 @@ class TotalPackagesFilter(admin.SimpleListFilter):
             ("2", "2"),
             ("5", "5"),
             ("10", "10"),
-            ("10", "10+"),
+            ("11", "10+"),
         )
 
     def queryset(self, request, queryset):
         value = self.value()
         if value in ("1", "2", "5", "10"):
             queryset = queryset.filter(_total_packages=value)
-        elif value in ("10+",):
+        elif value in ("11",):
             queryset = queryset.filter(_total_packages__gt=value)
         return queryset
 
