@@ -41,17 +41,23 @@ class Order(TimestampModel):
         READY_TO_SEND = 2
         SENT = 3
 
+    class Delivery(models.TextChoices):
+        DPD = "DPD"
+        FEDEX = ("Fedex",)
+        UPS = ("UPS",)
+
     customer_name = models.CharField(verbose_name="customer name", max_length=30)
     country = CountryField(null=False, blank=False)
     status = models.IntegerField(default=Status.NEW, choices=Status.choices)
+    delivery_company = models.CharField(choices=Delivery.choices, blank=True, null=True, max_length=20)
 
     class Meta:
         verbose_name = _("order")
         verbose_name_plural = _("orders")
 
-    @property
-    def total_packages_weight(self):
-        return sum([order_item.packages_weight for order_item in self.items.all()])
+    # @property
+    # def total_packages_weight(self):
+    #     return sum([order_item.packages_weight for order_item in self.items.all()])
 
 
 class OrderItem(TimestampModel):
@@ -63,9 +69,5 @@ class OrderItem(TimestampModel):
         verbose_name_plural = _("order items")
 
     # @property
-    # def packages_number(self):
-    #     return self.furniture.packages.count()
-    #
-    @property
-    def packages_weight(self):
-        return sum([package.weight for package in self.furniture.packages.all()])
+    # def packages_weight(self):
+    #     return sum([package.weight for package in self.furniture.packages.all()])

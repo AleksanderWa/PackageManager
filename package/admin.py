@@ -1,6 +1,9 @@
 from django.contrib import admin, messages
 from django.db.models import Count, DecimalField, IntegerField, OuterRef, Subquery, Sum
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 
+from package.forms import BulkSendForm
 from package.models import Order
 
 
@@ -51,12 +54,13 @@ class OrderAdmin(admin.ModelAdmin):
         "customer_name",
         "country",
         "status",
+        "delivery_company",
         "furniture_weight",
         "total_packages",
         "packages_weight",
     )
     list_filter = ("status", TotalPackagesFilter)
-    actions = ["count_weight"]
+    actions = ["count_weight", "bulk_send"]
 
     def packages_weight(self, obj):
         return obj._packages_weight
@@ -74,3 +78,13 @@ class OrderAdmin(admin.ModelAdmin):
     def count_weight(self, request, queryset):
         weight = queryset.aggregate(Sum("_furniture_weight"))["_furniture_weight__sum"]
         messages.add_message(request, messages.INFO, f"Weight in kg: {weight}")
+
+    def bulk_send(self, request, queryset):
+        if request.method == "POST" and "apply" in request.POST:
+            form = BulkSendForm(request.POST)
+            if form.is_valid():
+                queryset.update(status=Order.Status.SENT, delivery_company=form.cleaned_data["delivery_company"])
+                self.message_user(request, "Changed status on {} orders".format(queryset.count()))
+                return HttpResponseRedirect(request.get_full_path())
+
+        return render(request, "admin/bulk_send.html", context={"form": BulkSendForm(), "orders": queryset})
