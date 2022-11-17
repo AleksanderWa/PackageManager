@@ -22,7 +22,8 @@ class BaseAdminTest(TestCase):
         setattr(request, "_messages", FallbackStorage(request))
         return request
 
-    def create_order_fixture(self, order_quantity, furniture_weight, furniture_price, package1_weight, package2_weight):
+    @staticmethod
+    def create_order_fixture(order_quantity, furniture_weight, furniture_price, package1_weight, package2_weight):
         furniture = FurnitureFactory.create(price=furniture_price, weight=furniture_weight)
 
         PackageFactory.create(furniture=furniture, weight=package1_weight)

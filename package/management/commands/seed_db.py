@@ -32,9 +32,9 @@ class Command(
         logger.info("Fixtures successfully created!")
 
     def create_admin(self):
-        self.admin = User.objects.create_superuser(username="admin")
-        self.admin.set_password("password")
-        self.admin.save()
+        admin = User.objects.create_superuser(username="admin")
+        admin.set_password("password")
+        admin.save()
 
         logger.info("User created!")
 
