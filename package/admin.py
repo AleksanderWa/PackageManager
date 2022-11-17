@@ -123,6 +123,7 @@ class OrderItemAdmin(admin.ModelAdmin):
         "id",
         "created_at",
         "order_country",
+        "order_postal_code",
         "furniture_weight",
         "total_packages",
         "packages_weight",

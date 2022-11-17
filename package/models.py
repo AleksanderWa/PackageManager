@@ -48,10 +48,9 @@ class Order(TimestampModel):
         UPS = ("UPS",)
 
     customer_name = models.CharField(verbose_name=_("customer name"), max_length=30)
-    country = CountryField(null=False, blank=False)
-    province = models.CharField(max_length=30, null=True)
+    country = CountryField(blank=False)
+    province = models.CharField(max_length=30)
     postal_code = models.CharField(
-        null=True,
         max_length=6,
         validators=[RegexValidator("^[0-9]{6}$", _("Invalid postal code"))],
     )

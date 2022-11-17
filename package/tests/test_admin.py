@@ -5,7 +5,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.http import HttpRequest
 from django.test import TestCase
 
-from package.admin import OrderAdmin, OrderItemAdmin
+from package.admin import OrderAdmin, OrderItemAdmin, TotalPackagesFilter
 from package.factory import FurnitureFactory, OrderFactory, OrderItemFactory, PackageFactory
 from package.models import Order, OrderItem
 
@@ -137,6 +137,54 @@ class OrderAdminTest(BaseAdminTest):
         statuses = list(queryset.values_list("status", flat=True))
         for status in statuses:
             self.assertEqual(status, Order.Status.NEW)
+
+
+class TotalPackagesFilterTest(BaseAdminTest):
+    def setUp(self):
+        super().setUp()
+        self.request = self.get_request()
+        self.app_admin = OrderAdmin(Order, AdminSite())
+
+    def test_success_filtering_2_packages(self):
+        order = self.create_order_fixture(
+            order_quantity=1,
+            furniture_weight=Decimal("17.50"),
+            furniture_price=Decimal("199.99"),
+            package1_weight=Decimal("15.00"),
+            package2_weight=Decimal("5.00"),
+        )
+        queryset = self.app_admin.get_queryset(self.request)
+        packages_filter = TotalPackagesFilter(None, {"total_packages_filter": "2"}, Order, OrderAdmin)
+        filtered_orders = packages_filter.queryset(None, queryset)
+        self.assertIn(order, filtered_orders)
+
+    def test_success_filtering_10_packages(self):
+        order = self.create_order_fixture(
+            order_quantity=1,
+            furniture_weight=Decimal("17.50"),
+            furniture_price=Decimal("199.99"),
+            package1_weight=Decimal("15.00"),
+            package2_weight=Decimal("5.00"),
+        )
+        furniture = order.items.first().furniture
+        PackageFactory.create_batch(8, furniture=furniture)
+        queryset = self.app_admin.get_queryset(self.request)
+        packages_filter = TotalPackagesFilter(None, {"total_packages_filter": "10"}, Order, OrderAdmin)
+        filtered_orders = packages_filter.queryset(None, queryset)
+        self.assertIn(order, filtered_orders)
+
+    def test_filtering_no_results(self):
+        self.create_order_fixture(
+            order_quantity=1,
+            furniture_weight=Decimal("17.50"),
+            furniture_price=Decimal("199.99"),
+            package1_weight=Decimal("15.00"),
+            package2_weight=Decimal("5.00"),
+        )
+        queryset = self.app_admin.get_queryset(self.request)
+        packages_filter = TotalPackagesFilter(None, {"total_packages_filter": "10"}, Order, OrderAdmin)
+        filtered_orders = packages_filter.queryset(None, queryset)
+        self.assertEqual(filtered_orders.count(), 0)
 
 
 class OrderItemAdminTest(BaseAdminTest):
