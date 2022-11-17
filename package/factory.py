@@ -21,8 +21,6 @@ class OrderItemFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = OrderItem
 
-    # quantity = factory.LazyAttribute(lambda o: faker.pyint(min_value=50, max_value=10000, step=1.5))
-
 
 class PackageFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -30,7 +28,7 @@ class PackageFactory(factory.django.DjangoModelFactory):
 
     number = factory.LazyAttribute(lambda o: "Numer: ".join(str(random.randint(1, 20))))
     weight = factory.LazyAttribute(
-        lambda o: faker.pydecimal(min_value=2.00, max_value=20.00, left_digits=2, right_digits=2, positive=True)
+        lambda o: faker.pydecimal(min_value=1.00, max_value=5.00, left_digits=2, right_digits=2, positive=True)
     )
 
 
@@ -56,5 +54,5 @@ class FurnitureFactory(factory.django.DjangoModelFactory):
             packages_number = random.randint(4, 10)
             packages = PackageFactory.create_batch(packages_number, furniture=self)
 
-            furniture_weight = sum([package.weight for package in packages])
-            self.weight = furniture_weight
+            packages_weight = sum([package.weight for package in packages])
+            self.weight = packages_weight

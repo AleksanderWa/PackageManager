@@ -95,20 +95,30 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
-        furniture_weight = OrderItem.objects.annotate(furniture_weight=Sum("furniture__weight")).filter(
-            pk=OuterRef("pk")
+        furniture_weight = (
+            OrderItem.objects.prefetch_related("order")
+            .annotate(furniture_weight=Sum("furniture__weight"))
+            .filter(pk=OuterRef("pk"))
         )
-        total_package = OrderItem.objects.annotate(total_packages=Count("furniture__packages")).filter(
-            pk=OuterRef("pk")
+        total_package = (
+            OrderItem.objects.prefetch_related("order")
+            .annotate(total_packages=Count("furniture__packages"))
+            .filter(pk=OuterRef("pk"))
         )
-        packages_weight = OrderItem.objects.annotate(packages_weight=Sum("furniture__packages__weight")).filter(
-            pk=OuterRef("pk")
+        packages_weight = (
+            OrderItem.objects.prefetch_related("order")
+            .annotate(packages_weight=Sum("furniture__packages__weight"))
+            .filter(pk=OuterRef("pk"))
         )
-        qs = OrderItem.objects.annotate(
-            _furniture_weight=Subquery(furniture_weight.values("furniture_weight"), output_field=DecimalField()),
-            _total_packages=Subquery(total_package.values("total_packages"), output_field=IntegerField()),
-            _packages_weight=Subquery(packages_weight.values("packages_weight"), output_field=DecimalField()),
-        ).order_by("order__country")
+        qs = (
+            OrderItem.objects.prefetch_related("order")
+            .annotate(
+                _furniture_weight=Subquery(furniture_weight.values("furniture_weight"), output_field=DecimalField()),
+                _total_packages=Subquery(total_package.values("total_packages"), output_field=IntegerField()),
+                _packages_weight=Subquery(packages_weight.values("packages_weight"), output_field=DecimalField()),
+            )
+            .order_by("order__country")
+        )
         return qs
 
     list_display = (
@@ -130,7 +140,15 @@ class OrderItemAdmin(admin.ModelAdmin):
         return obj._total_packages
 
     def order_country(self, obj):
-        return obj.order.country.name
+        return obj.order.country
+
+    def set_row_style(self, obj, index):
+        styles = []
+        if obj.order.is_benelux_country() and obj._packages_weight > 200:
+            styles.append("background-color:#f5a59f;")
+        if obj._total_packages > 3:
+            styles.append("border:2px solid violet;")
+        return " ".join(styles)
 
     packages_weight.admin_order_field = "_packages_weight"
     furniture_weight.admin_order_field = "_furniture_weight"

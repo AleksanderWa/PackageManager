@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n admin_tags %}
 {% if result_hidden_fields %}
 <div class="hiddenfields">{# DIV for HTML validation #}
 {% for item in result_hidden_fields %}{{ item }}{% endfor %}
@@ -30,7 +30,8 @@
 {% if result.form and result.form.non_field_errors %}
     <tr><td colspan="{{ result|length }}">{{ result.form.non_field_errors }}</td></tr>
 {% endif %}
-<tr style="background-color:#FF0000">{% for item in result %}{{ item }}{% endfor %}</tr>
+{#<tr style="background-color:#FF0000">{% for item in result %}{{ item }}{% endfor %}</tr>#}
+<tr class="{% cycle 'row1' 'row2' %}" style="{% row_css cl forloop.counter0 %}">{% for item in result %}{{ item }}{% endfor %}</tr>
 {% endfor %}
 </tbody>
 </table>

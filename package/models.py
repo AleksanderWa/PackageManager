@@ -55,9 +55,8 @@ class Order(TimestampModel):
         verbose_name = _("order")
         verbose_name_plural = _("orders")
 
-    # @property
-    # def total_packages_weight(self):
-    #     return sum([order_item.packages_weight for order_item in self.items.all()])
+    def is_benelux_country(self):
+        return self.country in ["BE", "NL", "LU"]
 
 
 class OrderItem(TimestampModel):
