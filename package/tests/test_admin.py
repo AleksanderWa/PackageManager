@@ -278,3 +278,31 @@ class OrderItemAdminTest(BaseAdminTest):
         queryset = self.app_admin.get_queryset(self.request)
         style = self.app_admin.set_row_style(queryset.first(), 0)
         self.assertEqual(style, "background-color:#f5a59f; border:2px solid violet;")
+
+    def test_correct_queryset_ordering(self):
+
+        order_1 = self.create_order_fixture(
+            order_quantity=2,
+            furniture_weight=Decimal("17.50"),
+            furniture_price=Decimal("199.99"),
+            package1_weight=Decimal("15.00"),
+            package2_weight=Decimal("5.00"),
+        )
+        order_2 = self.create_order_fixture(
+            order_quantity=2,
+            furniture_weight=Decimal("5.50"),
+            furniture_price=Decimal("99.99"),
+            package1_weight=Decimal("2.00"),
+            package2_weight=Decimal("7.00"),
+        )
+        order_1.country = "PL"
+        order_1.postal_code = "78-100"
+        order_1.save()
+
+        order_2.country = "BE"
+        order_2.postal_code = "22333"
+        order_2.save()
+
+        queryset = self.app_admin.get_queryset(self.request)
+        countries = list(queryset.values_list("order__country", flat=True))
+        self.assertEqual(countries, ["BE", "BE", "PL", "PL"])
