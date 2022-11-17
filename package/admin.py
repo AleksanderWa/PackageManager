@@ -60,7 +60,7 @@ class OrderAdmin(admin.ModelAdmin):
         "packages_weight",
     )
     list_filter = ("status", TotalPackagesFilter)
-    actions = ["count_weight", "bulk_send"]
+    actions = ["count_weight", "ready_to_send"]
 
     def packages_weight(self, obj):
         return obj._packages_weight
@@ -79,7 +79,7 @@ class OrderAdmin(admin.ModelAdmin):
         weight = queryset.aggregate(Sum("_furniture_weight"))["_furniture_weight__sum"]
         messages.add_message(request, messages.INFO, f"Weight in kg: {weight}")
 
-    def bulk_send(self, request, queryset):
+    def ready_to_send(self, request, queryset):
         if request.method == "POST" and "apply" in request.POST:
             form = BulkSendForm(request.POST)
             if form.is_valid():
@@ -89,7 +89,7 @@ class OrderAdmin(admin.ModelAdmin):
                 self.message_user(request, "Changed status on {} orders".format(queryset.count()))
                 return HttpResponseRedirect(request.get_full_path())
 
-        return render(request, "admin/bulk_send.html", context={"form": BulkSendForm(), "orders": queryset})
+        return render(request, "admin/ready_to_send.html", context={"form": BulkSendForm(), "orders": queryset})
 
 
 @admin.register(OrderItem)
@@ -116,7 +116,7 @@ class OrderItemAdmin(admin.ModelAdmin):
                 _total_packages=Subquery(total_package.values("total_packages"), output_field=IntegerField()),
                 _packages_weight=Subquery(packages_weight.values("packages_weight"), output_field=DecimalField()),
             )
-        ).order_by("order__country")
+        ).order_by("order__country", "order__postal_code")
         return qs
 
     list_display = (

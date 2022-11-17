@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from django.db import IntegrityError
+from django.db import DataError, IntegrityError
 from django.test import TestCase
 
 from package.factory import FurnitureFactory, OrderFactory
@@ -8,6 +8,15 @@ from package.models import Furniture, Order, OrderItem, Package
 
 
 class BaseTestCase(TestCase):
+    def get_order_data(self):
+        return {
+            "customer_name": "Spider Man",
+            "country": "PL",
+            "status": Order.Status.SENT,
+            "postal_code": "85-100",
+            "province": "Pomorskie",
+        }
+
     def test_can_create_furniture(self):
         price = Decimal("115.99")
         weight = Decimal("150.05")
@@ -46,15 +55,19 @@ class BaseTestCase(TestCase):
             OrderItem.objects.create(furniture=furniture)
 
     def test_can_create_order(self):
-        customer_name = "Spider Man"
-        country = "PL"
-        status = Order.Status.SENT
-        order = Order.objects.create(customer_name=customer_name, country=country, status=status)
+        data = self.get_order_data()
+        order = Order.objects.create(**data)
         order.refresh_from_db()
         self.assertEqual(Order.objects.filter(id=order.id).exists(), True)
-        self.assertEqual(order.customer_name, customer_name)
-        self.assertEqual(order.country, country)
-        self.assertEqual(order.status, status)
+        self.assertEqual(order.customer_name, data["customer_name"])
+        self.assertEqual(order.country, data["country"])
+        self.assertEqual(order.status, data["status"])
+
+    def test_cant_create_order_wrong_post_code(self):
+        data = self.get_order_data()
+        data["postal_code"] = "66992211"
+        with self.assertRaises(DataError):
+            Order.objects.create(**data)
 
     def test_furniture_factory_created_with_packages(self):
         furniture = FurnitureFactory.create(with_packages=True)

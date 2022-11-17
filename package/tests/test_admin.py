@@ -66,7 +66,7 @@ class OrderAdminTest(BaseAdminTest):
         self.assertEqual(queryset.get(id=order_2.id)._total_packages, 4)
         self.assertEqual(queryset.get(id=order_2.id)._packages_weight, Decimal("18.00"))
 
-    def test_bulk_send_status_changed(self):
+    def test_ready_to_send_status_changed(self):
         self.request.method = "POST"
         self.request.POST = {"apply": "Submit", "delivery_company": "DPD"}
         self.create_order_fixture(
@@ -85,12 +85,12 @@ class OrderAdminTest(BaseAdminTest):
         )
 
         queryset = self.app_admin.get_queryset(self.request)
-        self.app_admin.bulk_send(self.request, queryset)
+        self.app_admin.ready_to_send(self.request, queryset)
         statuses = list(queryset.values_list("status", flat=True))
         for status in statuses:
             self.assertEqual(status, Order.Status.READY_TO_SEND)
 
-    def test_bulk_send_validation_error_status_not_changed(self):
+    def test_ready_to_send_validation_error_status_not_changed(self):
         self.request.method = "POST"
         self.request.POST = {"apply": "Submit", "delivery_company": "blablabla"}
         self.create_order_fixture(
@@ -109,12 +109,12 @@ class OrderAdminTest(BaseAdminTest):
         )
 
         queryset = self.app_admin.get_queryset(self.request)
-        self.app_admin.bulk_send(self.request, queryset)
+        self.app_admin.ready_to_send(self.request, queryset)
         statuses = list(queryset.values_list("status", flat=True))
         for status in statuses:
             self.assertEqual(status, Order.Status.NEW)
 
-    def test_bulk_send_GET_status_not_changed(self):
+    def test_ready_to_send_GET_status_not_changed(self):
         self.request.method = "GET"
         self.request.POST = {"apply": "Submit", "delivery_company": "DPD"}
         self.create_order_fixture(
@@ -133,7 +133,7 @@ class OrderAdminTest(BaseAdminTest):
         )
 
         queryset = self.app_admin.get_queryset(self.request)
-        self.app_admin.bulk_send(self.request, queryset)
+        self.app_admin.ready_to_send(self.request, queryset)
         statuses = list(queryset.values_list("status", flat=True))
         for status in statuses:
             self.assertEqual(status, Order.Status.NEW)

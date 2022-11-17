@@ -15,6 +15,15 @@ class Command(
     help = "Create fixtures"
 
     def handle(self, *args, **options):
+        """
+        Create:
+        1. admin user
+        2. 70 orders with single cabinet for each order
+        3. 20 orders with 2 cabinets for each order
+        4. 10 orders with random (1 - 15) cabinets for each order
+        Every cabinet contains between 4 and 10 packages
+        Every package can have between 1 and 5 kg
+        """
         self.create_admin()
         self.create_single_cabinet_orders()
         self.create_double_cabinet_orders()
@@ -50,10 +59,8 @@ class Command(
     @staticmethod
     def seed_order(order, cabinets_number=None):
         cabinets_number = random.randint(1, 15) or cabinets_number
-        # packages_number = random.randint(4, 10)
 
         furniture = FurnitureFactory.create(with_packages=True)
-        # PackageFactory.create_batch(packages_number, furniture=furniture)
         for _ in range(0, cabinets_number):
             OrderItemFactory.create(order=order, furniture=furniture)
 

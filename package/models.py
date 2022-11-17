@@ -13,11 +13,11 @@ class TimestampModel(models.Model):
 
 
 class Furniture(TimestampModel):
-    name = models.CharField(verbose_name="name", max_length=40)
+    name = models.CharField(verbose_name=_("name"), max_length=40)
     weight = models.DecimalField(
-        verbose_name="weight", help_text="weight in kilograms", default=0, decimal_places=2, max_digits=5
+        verbose_name=_("weight"), help_text=_("weight in kilograms"), default=0, decimal_places=2, max_digits=5
     )
-    price = models.DecimalField(verbose_name="price", default=0, decimal_places=2, max_digits=5)
+    price = models.DecimalField(verbose_name=_("price"), default=0, decimal_places=2, max_digits=5)
 
     class Meta:
         verbose_name = _("furniture")
@@ -25,9 +25,9 @@ class Furniture(TimestampModel):
 
 
 class Package(TimestampModel):
-    number = models.CharField(verbose_name="number", max_length=40)
+    number = models.CharField(verbose_name=_("number"), max_length=40)
     weight = models.DecimalField(
-        verbose_name="weight", help_text="weight in kilograms", default=0, decimal_places=2, max_digits=5
+        verbose_name=_("weight"), help_text=_("weight in kilograms"), default=0, decimal_places=2, max_digits=5
     )
     furniture = models.ForeignKey(Furniture, on_delete=models.CASCADE, related_name="packages")
 
@@ -38,16 +38,16 @@ class Package(TimestampModel):
 
 class Order(TimestampModel):
     class Status(models.IntegerChoices):
-        NEW = 1
-        READY_TO_SEND = 2
-        SENT = 3
+        NEW = 1, _("New")
+        READY_TO_SEND = 2, _("Ready to send")
+        SENT = 3, _("Sent")
 
     class Delivery(models.TextChoices):
-        DPD = "DPD"
+        DPD = ("DPD",)
         FEDEX = ("Fedex",)
         UPS = ("UPS",)
 
-    customer_name = models.CharField(verbose_name="customer name", max_length=30)
+    customer_name = models.CharField(verbose_name=_("customer name"), max_length=30)
     country = CountryField(null=False, blank=False)
     province = models.CharField(max_length=30, null=True)
     postal_code = models.CharField(
