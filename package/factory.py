@@ -14,6 +14,7 @@ class OrderFactory(factory.django.DjangoModelFactory):
         model = Order
 
     customer_name = factory.Faker("name")
+    postal_code = factory.Faker("postcode")
     country = fuzzy.FuzzyChoice(["PL", "DE", "CH", "FR", "BE", "NL", "LU", "GB"])
 
 

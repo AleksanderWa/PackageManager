@@ -111,14 +111,12 @@ class OrderItemAdmin(admin.ModelAdmin):
             .filter(pk=OuterRef("pk"))
         )
         qs = (
-            OrderItem.objects.prefetch_related("order")
-            .annotate(
+            OrderItem.objects.prefetch_related("order").annotate(
                 _furniture_weight=Subquery(furniture_weight.values("furniture_weight"), output_field=DecimalField()),
                 _total_packages=Subquery(total_package.values("total_packages"), output_field=IntegerField()),
                 _packages_weight=Subquery(packages_weight.values("packages_weight"), output_field=DecimalField()),
             )
-            .order_by("order__country")
-        )
+        ).order_by("order__country")
         return qs
 
     list_display = (
@@ -141,6 +139,9 @@ class OrderItemAdmin(admin.ModelAdmin):
 
     def order_country(self, obj):
         return obj.order.country
+
+    def order_postal_code(self, obj):
+        return obj.order.postal_code
 
     def set_row_style(self, obj, index):
         styles = []

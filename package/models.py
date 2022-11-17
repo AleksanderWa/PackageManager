@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -48,6 +49,13 @@ class Order(TimestampModel):
 
     customer_name = models.CharField(verbose_name="customer name", max_length=30)
     country = CountryField(null=False, blank=False)
+    province = models.CharField(max_length=30, null=True)
+    postal_code = models.CharField(
+        null=True,
+        max_length=6,
+        validators=[RegexValidator("^[0-9]{6}$", _("Invalid postal code"))],
+    )
+
     status = models.IntegerField(default=Status.NEW, choices=Status.choices)
     delivery_company = models.CharField(choices=Delivery.choices, blank=True, null=True, max_length=20)
 
@@ -66,7 +74,3 @@ class OrderItem(TimestampModel):
     class Meta:
         verbose_name = _("order item")
         verbose_name_plural = _("order items")
-
-    # @property
-    # def packages_weight(self):
-    #     return sum([package.weight for package in self.furniture.packages.all()])
