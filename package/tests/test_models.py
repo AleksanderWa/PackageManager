@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.db import IntegrityError
 from django.test import TestCase
 
-from package.factory import FurnitureFactory, OrderFactory, OrderItemFactory, PackageFactory
+from package.factory import FurnitureFactory, OrderFactory
 from package.models import Furniture, Order, OrderItem, Package
 
 
@@ -35,18 +35,15 @@ class BaseTestCase(TestCase):
     def test_can_create_order_item(self):
         furniture = FurnitureFactory.create()
         order = OrderFactory.create()
-        quantity = 15
-        order_item = OrderItem.objects.create(quantity=quantity, furniture=furniture, order=order)
+        order_item = OrderItem.objects.create(furniture=furniture, order=order)
         order_item.refresh_from_db()
-        self.assertEqual(order_item.quantity, quantity)
         self.assertEqual(order_item.furniture, furniture)
         self.assertEqual(order_item.order, order)
 
     def test_cant_create_order_item_without_order(self):
         furniture = FurnitureFactory.create()
-        quantity = 15
         with self.assertRaises(IntegrityError):
-            OrderItem.objects.create(quantity=quantity, furniture=furniture)
+            OrderItem.objects.create(furniture=furniture)
 
     def test_can_create_order(self):
         customer_name = "Spider Man"
@@ -58,25 +55,6 @@ class BaseTestCase(TestCase):
         self.assertEqual(order.customer_name, customer_name)
         self.assertEqual(order.country, country)
         self.assertEqual(order.status, status)
-
-    def test_order_item_correct_packages_count(self):
-        furniture_1 = FurnitureFactory.create()
-        PackageFactory.create_batch(2, furniture=furniture_1)
-        order = OrderFactory.create()
-        order_item_1 = OrderItemFactory.create(quantity=10, order=order, furniture=furniture_1)  # 20 packages
-        self.assertEqual(order_item_1.packages_number, 20)
-
-    def test_order_correct_packages_count(self):
-        furniture_1 = FurnitureFactory.create()
-        furniture_2 = FurnitureFactory.create()
-
-        PackageFactory.create_batch(2, furniture=furniture_1)
-        PackageFactory.create_batch(2, furniture=furniture_2)
-
-        order = OrderFactory.create()
-        OrderItemFactory.create(quantity=10, order=order, furniture=furniture_1)  # 20 packages
-        OrderItemFactory.create(quantity=5, order=order, furniture=furniture_2)  # 10 packages
-        self.assertEqual(order.total_packages, 30)
 
     def test_furniture_factory_created_with_packages(self):
         furniture = FurnitureFactory.create(with_packages=True)
