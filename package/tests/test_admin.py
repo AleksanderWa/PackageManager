@@ -1,9 +1,11 @@
 from decimal import Decimal
 
 from django.contrib.admin import AdminSite
+from django.contrib.auth.models import User
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.http import HttpRequest
 from django.test import TestCase
+from django.urls import reverse
 
 from package.admin import OrderAdmin, OrderItemAdmin, TotalPackagesFilter
 from package.factory import FurnitureFactory, OrderFactory, OrderItemFactory, PackageFactory
@@ -66,6 +68,30 @@ class OrderAdminTest(BaseAdminTest):
         self.assertEqual(queryset.get(id=order_2.id)._furniture_weight, Decimal("11.00"))
         self.assertEqual(queryset.get(id=order_2.id)._total_packages, 4)
         self.assertEqual(queryset.get(id=order_2.id)._packages_weight, Decimal("18.00"))
+
+    def test_can_sort_by_annotated_field(self):
+        """
+        Sort by furniture weight
+        """
+        user = User.objects.create_superuser(username="Batman", password="password")
+        self.client.force_login(user)
+        order_1 = self.create_order_fixture(
+            order_quantity=2,
+            furniture_weight=Decimal("17.50"),
+            furniture_price=Decimal("199.99"),
+            package1_weight=Decimal("15.00"),
+            package2_weight=Decimal("5.00"),
+        )
+        order_2 = self.create_order_fixture(
+            order_quantity=2,
+            furniture_weight=Decimal("5.50"),
+            furniture_price=Decimal("99.99"),
+            package1_weight=Decimal("2.00"),
+            package2_weight=Decimal("7.00"),
+        )
+        response = self.client.get(reverse("admin:package_order_changelist"), {"o": "-7"}, follow=True)
+        result_list = list(response.context_data["cl"].result_list)
+        self.assertEqual(result_list, [order_1, order_2])
 
     def test_ready_to_send_status_changed(self):
         self.request.method = "POST"
