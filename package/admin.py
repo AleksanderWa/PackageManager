@@ -32,6 +32,9 @@ class TotalPackagesFilter(admin.SimpleListFilter):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
+        """
+        Each annotation is done in a separate queryset to avoid wrong Sum() calculations with multiple joins
+        """
         furniture_weight = Order.objects.annotate(furniture_weight=Sum("items__furniture__weight")).filter(
             pk=OuterRef("pk")
         )
@@ -95,6 +98,9 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
+        """
+        Each annotation is done in a separate queryset to avoid wrong Sum() calculations with multiple joins
+        """
         furniture_weight = (
             OrderItem.objects.prefetch_related("order")
             .annotate(furniture_weight=Sum("furniture__weight"))
