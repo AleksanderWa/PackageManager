@@ -58,7 +58,7 @@ class Command(
 
     @staticmethod
     def seed_order(order, cabinets_number=None):
-        cabinets_number = random.randint(1, 15) or cabinets_number
+        cabinets_number = cabinets_number or random.randint(1, 15)
 
         furniture = FurnitureFactory.create(with_packages=True)
         for _ in range(0, cabinets_number):

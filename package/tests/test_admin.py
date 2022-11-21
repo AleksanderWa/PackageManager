@@ -143,7 +143,6 @@ class OrderAdminTest(BaseAdminTest):
 
     def test_ready_to_send_GET_status_not_changed(self):
         self.request.method = "GET"
-        self.request.POST = {"apply": "Submit", "delivery_company": "DPD"}
         self.create_order_fixture(
             order_quantity=2,
             furniture_weight=Decimal("17.50"),
@@ -282,6 +281,8 @@ class OrderItemAdminTest(BaseAdminTest):
             package1_weight=Decimal("250.00"),
             package2_weight=Decimal("5.00"),
         )
+        order.country = "PL"
+        order.save()
         PackageFactory.create_batch(5, furniture=order.items.first().furniture)
         queryset = self.app_admin.get_queryset(self.request)
         style = self.app_admin.set_row_style(queryset.first(), 0)

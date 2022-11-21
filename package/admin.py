@@ -25,7 +25,7 @@ class TotalPackagesFilter(admin.SimpleListFilter):
         if value in ("1", "2", "5", "10"):
             queryset = queryset.filter(_total_packages=value)
         elif value in ("11",):
-            queryset = queryset.filter(_total_packages__gt=value)
+            queryset = queryset.filter(_total_packages__gte=value)
         return queryset
 
 
@@ -65,32 +65,28 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ("status", TotalPackagesFilter)
     actions = ["count_weight", "ready_to_send"]
 
+    @admin.display(ordering="_packages_weight")
     def packages_weight(self, obj):
         return obj._packages_weight
 
+    @admin.display(ordering="_furniture_weight")
     def furniture_weight(self, obj):
         return obj._furniture_weight
 
+    @admin.display(ordering="_total_packages")
     def total_packages(self, obj):
         return obj._total_packages
-
-    packages_weight.admin_order_field = "_packages_weight"
-    furniture_weight.admin_order_field = "_furniture_weight"
-    total_packages.admin_order_field = "_total_packages"
 
     def count_weight(self, request, queryset):
         weight = queryset.aggregate(Sum("_furniture_weight"))["_furniture_weight__sum"]
         messages.add_message(request, messages.INFO, f"Weight in kg: {weight}")
 
     def ready_to_send(self, request, queryset):
-        if request.method == "POST" and "apply" in request.POST:
-            form = BulkSendForm(request.POST)
-            if form.is_valid():
-                queryset.update(
-                    status=Order.Status.READY_TO_SEND, delivery_company=form.cleaned_data["delivery_company"]
-                )
-                self.message_user(request, "Changed status on {} orders".format(queryset.count()))
-                return HttpResponseRedirect(request.get_full_path())
+        form = BulkSendForm(request.POST or None)
+        if (request.method == "POST" and "apply" in request.POST) and form.is_valid():
+            queryset.update(status=Order.Status.READY_TO_SEND, delivery_company=form.cleaned_data["delivery_company"])
+            self.message_user(request, "Changed status on {} orders".format(queryset.count()))
+            return HttpResponseRedirect(request.get_full_path())
 
         return render(request, "admin/ready_to_send.html", context={"form": BulkSendForm(), "orders": queryset})
 
@@ -135,12 +131,15 @@ class OrderItemAdmin(admin.ModelAdmin):
         "packages_weight",
     )
 
+    @admin.display(ordering="_packages_weight")
     def packages_weight(self, obj):
         return obj._packages_weight
 
+    @admin.display(ordering="_furniture_weight")
     def furniture_weight(self, obj):
         return obj._furniture_weight
 
+    @admin.display(ordering="_total_packages")
     def total_packages(self, obj):
         return obj._total_packages
 
@@ -152,12 +151,8 @@ class OrderItemAdmin(admin.ModelAdmin):
 
     def set_row_style(self, obj, index):
         styles = []
-        if obj.order.is_benelux_country() and obj._packages_weight > 200:
+        if obj.order.is_benelux_country and obj._packages_weight > 200:
             styles.append("background-color:#f5a59f;")
         if obj._total_packages > 3:
             styles.append("border:2px solid violet;")
         return " ".join(styles)
-
-    packages_weight.admin_order_field = "_packages_weight"
-    furniture_weight.admin_order_field = "_furniture_weight"
-    total_packages.admin_order_field = "_total_packages"

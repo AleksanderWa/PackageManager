@@ -62,6 +62,7 @@ class Order(TimestampModel):
         verbose_name = _("order")
         verbose_name_plural = _("orders")
 
+    @property
     def is_benelux_country(self):
         return self.country in ["BE", "NL", "LU"]
 
