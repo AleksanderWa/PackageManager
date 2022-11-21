@@ -199,6 +199,21 @@ class TotalPackagesFilterTest(BaseAdminTest):
         filtered_orders = packages_filter.queryset(None, queryset)
         self.assertIn(order, filtered_orders)
 
+    def test_success_filtering_11_packages(self):
+        order = self.create_order_fixture(
+            order_quantity=1,
+            furniture_weight=Decimal("17.50"),
+            furniture_price=Decimal("199.99"),
+            package1_weight=Decimal("15.00"),
+            package2_weight=Decimal("5.00"),
+        )
+        furniture = order.items.first().furniture
+        PackageFactory.create_batch(9, furniture=furniture)
+        queryset = self.app_admin.get_queryset(self.request)
+        packages_filter = TotalPackagesFilter(None, {"total_packages_filter": "11"}, Order, OrderAdmin)
+        filtered_orders = packages_filter.queryset(None, queryset)
+        self.assertIn(order, filtered_orders)
+
     def test_filtering_no_results(self):
         self.create_order_fixture(
             order_quantity=1,
